@@ -1,5 +1,6 @@
 package com.onurhaktan.todobackend.controller;
 
+import com.onurhaktan.todobackend.dto.JwtAuthResponse;
 import com.onurhaktan.todobackend.dto.LoginDto;
 import com.onurhaktan.todobackend.dto.RegisterDto;
 import com.onurhaktan.todobackend.service.AuthService;
@@ -25,8 +26,12 @@ public class AuthController {
 
     // Build Login REST API
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDto loginDto){
-        String response = authService.login(loginDto);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginDto loginDto){
+        String token = authService.login(loginDto);
+
+        JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
+        jwtAuthResponse.setAccessToken(token);
+
+        return new ResponseEntity<>(jwtAuthResponse, HttpStatus.OK);
     }
 }

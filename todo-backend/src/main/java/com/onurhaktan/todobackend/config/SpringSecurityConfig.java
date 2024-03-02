@@ -1,5 +1,7 @@
 package com.onurhaktan.todobackend.config;
 
+import com.onurhaktan.todobackend.security.JwtAuthenticationEntryPoint;
+import com.onurhaktan.todobackend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,12 +11,14 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -22,6 +26,10 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SpringSecurityConfig {
 
     private final UserDetailsService userDetailsService;
+
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public static PasswordEncoder passwordEncoder(){
@@ -31,7 +39,7 @@ public class SpringSecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf((csrf) -> csrf.disable())
+        http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> {
                     /*authorize.requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN");
                     authorize.requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN");
@@ -43,6 +51,11 @@ public class SpringSecurityConfig {
                     authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     authorize.anyRequest().authenticated();
                 }).httpBasic(Customizer.withDefaults());
+
+        http.exceptionHandling( exception -> exception
+                .authenticationEntryPoint(authenticationEntryPoint));
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
